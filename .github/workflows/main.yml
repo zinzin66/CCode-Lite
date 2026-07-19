@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # <-- Cette ligne est INDISPENSABLE pour débloquer l'erreur
+  workflow_dispatch:
 
 jobs:
   build-android:
@@ -21,16 +21,11 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Download Solar2D Builder CLI
-      run: |
-        curl -L -o solar2d-cli.tar.gz https://github.com/coronalabs/corona/releases/download/3712/Solar2D-Linux-3712.tar.gz
-        tar -xzf solar2d-cli.tar.gz
-        chmod +x ./Solar2D-Builder
-
-    - name: Build APK via Solar2D
-      run: |
-        mkdir -p builds
-        ./Solar2D-Builder build recipe.lua
+    # Version officielle et automatisée pour Solar2D :
+    - name: Build Android APK with Solar2D Action
+      uses: cyber_folks/solar2d-build-action@v1
+      with:
+        recipe-path: 'recipe.lua'
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
