@@ -21,11 +21,25 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # Version officielle et automatisée pour Solar2D :
-    - name: Build Android APK with Solar2D Action
-      uses: cyber_folks/solar2d-build-action@v1
-      with:
-        recipe-path: 'recipe.lua'
+    - name: Download and Setup Solar2D Release
+      run: |
+        # Téléchargement de la version Linux officielle (3712) depuis les serveurs Solar2D
+        curl -L -o solar2d.tar.gz https://github.com/coronalabs/corona/releases/download/3712/Solar2D-Linux-3712.tar.gz
+        
+        # Extraction propre
+        tar -xzf solar2d.tar.gz
+        
+        # On renomme le dossier extrait pour s'y retrouver facilement
+        mv Solar2D-Linux-3712 solar2d-cli
+        
+        # On donne les permissions d'exécution au binaire de build
+        chmod +x ./solar2d-cli/resources/Solar2D-Builder
+
+    - name: Build APK via Solar2D
+      run: |
+        mkdir -p builds
+        # Exécution du builder officiel avec ton fichier recipe.lua
+        ./solar2d-cli/resources/Solar2D-Builder build recipe.lua
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
