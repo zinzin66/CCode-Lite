@@ -2,10 +2,10 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main" ]  # Se déclenche dès que tu pousses du code sur la branche main
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:      # Permet aussi de lancer le build manuellement sur GitHub
+  workflow_dispatch: # <-- Cette ligne est INDISPENSABLE pour débloquer l'erreur
 
 jobs:
   build-android:
@@ -15,7 +15,7 @@ jobs:
     - name: Checkout project code
       uses: actions/checkout@v4
 
-    - name: Setup Java (Requis pour Android)
+    - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -23,17 +23,13 @@ jobs:
 
     - name: Download Solar2D Builder CLI
       run: |
-        # Télécharge la version CLI stable de Solar2D pour Linux
         curl -L -o solar2d-cli.tar.gz https://github.com/coronalabs/corona/releases/download/3712/Solar2D-Linux-3712.tar.gz
         tar -xzf solar2d-cli.tar.gz
-        # On rend le builder exécutable
         chmod +x ./Solar2D-Builder
 
     - name: Build APK via Solar2D
       run: |
-        # Crée le dossier pour accueillir l'APK
         mkdir -p builds
-        # Exécute le build en utilisant notre fichier recipe.lua
         ./Solar2D-Builder build recipe.lua
 
     - name: Upload APK Artifact
