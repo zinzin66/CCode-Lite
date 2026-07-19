@@ -23,19 +23,27 @@ jobs:
 
     - name: Download and Setup Solar2D Latest Release
       run: |
-        # 1. On récupère automatiquement l'URL du dernier fichier .tar.gz de Solar2D Linux
-        LATEST_URL=$(curl -s https://api.github.com/repos/coronalabs/corona/releases/latest | grep "browser_download_url.*Linux.*tar.gz" | cut -d '"' -f 4)
+        # 1. Requête authentifiée auprès de l'API GitHub pour obtenir toutes les releases
+        RELEASES_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/coronalabs/corona/releases)
+        
+        # 2. Extraction du premier lien qui contient "Linux" et termine par ".tar.gz"
+        LATEST_URL=$(echo "$RELEASES_JSON" | jq -r '.[].assets[]? | select(.name | test("Linux"; "i")) | select(.name | test("tar.gz$")) | .browser_download_url' | head -n 1)
         
         echo "Téléchargement depuis : $LATEST_URL"
         
-        # 2. On télécharge le fichier
+        # Sécurité : si aucune URL n'est trouvée, on stoppe proprement avec un message clair
+        if [ -z "$LATEST_URL" ] || [ "$LATEST_URL" = "null" ]; then
+          echo "Erreur : Impossible de trouver un binaire Linux dans les releases Solar2D."
+          exit 1
+        fi
+        
+        # 3. Téléchargement et extraction
         wget "$LATEST_URL" -O solar2d.tar.gz
         
-        # 3. Extraction de l'archive
-        mkdir solar2d-cli
+        mkdir -p solar2d-cli
         tar -xzf solar2d.tar.gz -C solar2d-cli --strip-components=1
         
-        # 4. On donne les droits au Builder
+        # 4. Permissions sur le binaire
         chmod +x ./solar2d-cli/resources/Solar2D-Builder
 
     - name: Build APK via Solar2D
