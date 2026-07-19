@@ -21,19 +21,21 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Download and Setup Solar2D Release
+    - name: Download and Setup Solar2D Latest Release
       run: |
-        # On utilise wget avec des options pour forcer le téléchargement du vrai fichier
-        wget "https://github.com/coronalabs/corona/releases/download/3712/Solar2D-Linux-3712.tar.gz" -O solar2d.tar.gz
+        # 1. On récupère automatiquement l'URL du dernier fichier .tar.gz de Solar2D Linux
+        LATEST_URL=$(curl -s https://api.github.com/repos/coronalabs/corona/releases/latest | grep "browser_download_url.*Linux.*tar.gz" | cut -d '"' -f 4)
         
-        # On vérifie la taille pour être sûr (si c'est vide ou minuscule, ça s'arrêtera ici)
-        ls -lh solar2d.tar.gz
+        echo "Téléchargement depuis : $LATEST_URL"
         
-        # Extraction
-        tar -xzf solar2d.tar.gz
+        # 2. On télécharge le fichier
+        wget "$LATEST_URL" -O solar2d.tar.gz
         
-        # On renomme et on donne les droits
-        mv Solar2D-Linux-3712 solar2d-cli
+        # 3. Extraction de l'archive
+        mkdir solar2d-cli
+        tar -xzf solar2d.tar.gz -C solar2d-cli --strip-components=1
+        
+        # 4. On donne les droits au Builder
         chmod +x ./solar2d-cli/resources/Solar2D-Builder
 
     - name: Build APK via Solar2D
